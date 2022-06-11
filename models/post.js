@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const PostSchema = mongoose.Schema(
     {
         title: String,
@@ -10,13 +9,10 @@ const PostSchema = mongoose.Schema(
     },
     { timestamps: true }
 );
-
 PostSchema.virtual('postId').get(function () {
     return this._id.toHexString();
 });
-
 PostSchema.set('toJSON', {
     virtuals: true,
 });
-
 module.exports = mongoose.model('Post', PostSchema);
