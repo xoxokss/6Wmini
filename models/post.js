@@ -17,7 +17,7 @@ const PostSchema = mongoose.Schema(
     { timestamps: true }
 );
 
-PostSchema.virtual('postId').get(function () {
+PostSchema.virtual('post_id').get(function () {
     return this._id.toHexString();
 });
 
