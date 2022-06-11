@@ -89,6 +89,34 @@ router.post("/write", authMiddleware, async (req, res) => {
         })
     };
 });
+
+/**
+ * 게시글 수정 API 
+*/
+//taein
+router.patch('/post/:postId/',authMiddleware,async (req, res) => {
+    const { title, thumbnail_url, onair_year, content, ost_url,user_id } = req.body;
+    const {postId} = req.params;
+    const post = await Post.findById(postId);
+    // console.log(post.postPassword);
+    // console.log(postPassword);
+   
+        const modifyArticle = await Post.findByIdAndUpdate(postId, {
+            $set: { 
+                title:title,
+                thumbnail_url:thumbnail_url,
+                onair_year:onair_year,
+                content:content,
+                ost_url:ost_url 
+            },
+        });
+        res.status(201).json({
+            result: 'success',
+            msg: '글이 수정되었습니다.',
+        });
+    }    
+);
+
 /**
  * 좋아요 기능 API 
 */

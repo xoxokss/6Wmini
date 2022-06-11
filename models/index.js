@@ -2,7 +2,7 @@ const mongoose = require("mongoose"); //몽구스 연결
 
 const connect = () => { //mongoose 연결
     mongoose
-        .connect("mongodb+srv://xoxokss:test@cluster0.dkb77.mongodb.net/?retryWrites=true&w=majority", {
+        .connect("mongodb+srv://xoxokss:test@cluster0.dkb77.mongodb.net/MINI?retryWrites=true&w=majority", {
             ignoreUndefined: true,
             useNewUrlParser: true,
             useUnifiedTopology: true,
