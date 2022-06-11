@@ -33,7 +33,8 @@ router.post("/user/signup", async (req,res) => {
                errorMessage: "닉네임이 패스워드에 포함되어 있습니다!",
            });
            return;
-       }
+        }
+    
 
        if(password !== confirmPassword){
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
