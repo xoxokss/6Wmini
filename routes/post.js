@@ -116,11 +116,10 @@ router.patch('/post/:postId/',authMiddleware,async (req, res) => {
         });
     }    
 );
-
 /**
  * 좋아요 기능 API 
 */
-//taein
+//taein testing
 router.patch('/posts/:postId/like',authMiddleware,async (req, res) => {
     const { user_id } = req.body;
     const {postId} = req.params;
