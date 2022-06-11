@@ -1,40 +1,33 @@
 const express = require("express");
-const Post = require("../models/post"); //스키마 폴더 안에 post 스키마
+const Post = require("../models/post"); 
+const User = require("../models/user");
 const authMiddleware = require("../middlewares/auth-middleware");
 const router = express.Router();
 
-
-
 /**
- * 전체 게시글 불러오기 API. index.ejs > getArticles()
+ * 전체 게시글 불러오기 API.
  */
 //taein
 router.get("/posts", async (req, res) => { 
    // [{ post의 내용. _id: ..., title: ..., content: ... }, { }, { }]
-    const { postDate } = req.body;
+    //const { postDate } = req.body;
 
     const posts = await Post.find().sort({ createdAt: 'desc' }).exec(); //post라는 스키마에서 find, sort()날짜기준 내림차순 
-     // console.log("posts",posts);    
-    // userId만 추출. ['userId1', 'userId2', 'userId3', ..]
-    const userIds = posts.map((author) => author.user_id);
+    //console.log(posts); []배열 안에 게시글 하나씩[{게시글1},{게시글2},{게시글3}]   
     
-    // $in : 비교 연산자. 주어진 배열(userIds) 안에 속하는 값
-    const userInfoById = await User.find({ $in: userIds
-    })
-        .exec()
-        .then((user) =>
-          user.reduce(
-                (prev, a) => ({
-                    ...prev,   
-                    [a.user_id]: a, 
-                 }),
-                    {} 
-                    )
-                    );     
+    const user_ids = posts.map((writer) =>writer.user_id);
+    console.log(user_ids);  //user_id만 추출. ['user_id1', 'user_id2', 'user_id3', ..]
+    // $in mongodb query
+    const userInfoById = await User.find({
+        user_id: { $in: user_ids },
+    }).exec()    
+         .then((user) =>user.reduce((prev, a) => ({...prev,[a.user_id]:{user_id:a.user_id,nickname:a.nickname}, }), {} )); 
+         //console.log(userInfoById);
+         //프론트에서 원하는데로 가공해주자
     res.send({
-       posts: posts.map((a) => ({     
+       posts: posts.map((a) => ({   
            
-            postId: a.postId,
+            post_id: a.post_id,
             thumbnail_url: a.thumbnail_url,
             onair_year:a.onair_year,
             title: a.title,
@@ -52,56 +45,45 @@ router.get("/posts", async (req, res) => {
  * 글 생성, 입력 API 
 */
 //taein
-router.post("/write", authMiddleware, async (req, res) => { 
-    
-    try {
+router.post("/posts", authMiddleware, async (req, res) => {  
+    try {      
         //const { user } = res.locals;
-        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = req.body; // body 정보가져옴
+        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = req.body; // body 정보가져옴                
+        if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
+            res.status(401).send({
+                errorMessage: 'youtube의 영상만 가능합니다.',
+            });   
+            return;     
+        }
+        const posting = await Post.create({
+                title,
+                user_id,
+                thumbnail_url, 
+                onair_year, 
+                content,
+                ost_url,
+        });          
+        res.status(201).json({ result: 'success', msg: '내 추천만화가 등록되었습니다.' });    
 
-        // 자동으로 postId를 넣는 라이브러리 설치 후 중복확인 절차 제거
-        // isExist = await Post.find({ postId });
-        // if (isExist.length) {
-        //     return res.status(400).json({ success: false, errorMessage: "이미 있는 게시글입니다." });
-        // }
-        
-    if(!(ost_url.includes("www.youtube.com"||"youtu.be"))){
-        res.status(401).send({
-            errorMessage: 'youtube의 영상만 가능합니다.',
-        });
-        
-    }
-    const posting = await Post.create({
-        title,
-        user_id,
-        thumbnail_url, 
-        onair_year, 
-        content,
-        ost_url,
-    });
-
-    res.status(201).json({ result: 'success', msg: '내 추천만화가 등록되었습니다.' });    
-
-        //res.json({ post: createpost });
-    } catch (err) {
-        console.log(err)
-        res.status(400).send({
-            errorMessage: "게시글 작성 에러",
-        })
-    };
+        } catch (err) {
+            console.log(err)
+            res.status(400).send({
+                errorMessage: "게시글 작성 에러",
+            })
+        };
 });
 
 /**
  * 게시글 수정 API 
 */
 //taein
-router.patch('/post/:postId/',authMiddleware,async (req, res) => {
-    const { title, thumbnail_url, onair_year, content, ost_url,user_id } = req.body;
-    const {postId} = req.params;
-    const post = await Post.findById(postId);
-    // console.log(post.postPassword);
-    // console.log(postPassword);
-   
-        const modifyArticle = await Post.findByIdAndUpdate(postId, {
+router.patch('/posts/:post_id/modify',authMiddleware,async (req, res) => {
+    try{
+        const { title, thumbnail_url, onair_year, content, ost_url,user_id } = req.body;
+        const {post_id} = req.params;
+        const post = await Post.findById(post_id);
+           
+        const modifyArticle = await Post.findByIdAndUpdate(post_id, {
             $set: { 
                 title:title,
                 thumbnail_url:thumbnail_url,
@@ -109,49 +91,93 @@ router.patch('/post/:postId/',authMiddleware,async (req, res) => {
                 content:content,
                 ost_url:ost_url 
             },
-        });
+        })
         res.status(201).json({
             result: 'success',
             msg: '글이 수정되었습니다.',
         });
-    }    
-);
+    }
+    catch (error) {    
+        res.status(400).send({
+        errorMessage: '게시글 수정에 실패하였습니다.',
+        });
+    }
+  
+});
+/**
+ * 게시글 삭제 기능 API 
+*/
+//taein 
+router.delete('/posts/:post_id',authMiddleware, async (req, res) => {    
+    try {
+        const {post_id} = req.params;
+        const existsPost = await Post.findById(post_id);
+        //console.log(existsPost);
+       
+        if (existsPost) {                      
+                await Post.findByIdAndDelete(post_id); // postId 일치하는 것으로 삭제
+                res.status(200).json({
+                    result: 'success',
+                    msg: '글이 삭제되었습니다.',
+                });
+                return;
+         }
+         else {
+            // 올 일은 없지만, 멀티 세션으로 같은 글을 동시에 지우려고 했을때?---???
+            res.status(400).json({
+                result: 'error',
+                msg: '게시글이 이미 삭제되었습니다.',
+            });
+            return;
+        }       
+    } catch (error) {        
+        res.status(400).send({
+            errorMessage: '게시글 삭제에 실패하였습니다.',
+        });
+    }
+})
 /**
  * 좋아요 기능 API 
 */
-//taein testing
-router.patch('/posts/:postId/like',authMiddleware,async (req, res) => {
-    const { user_id } = req.body;
-    const {postId} = req.params;
-   // console.log(postId);
-    const post = await Post.findOne({_id:{ $in: postId } }).exec();  
-   
-   // console.log("post",post);
-    let cnt = post.likes;
-    //console.log("type",typeof(cnt))
-    const found = post.lovers.find(e => e === user_id);
-     
-    if(found)  {
-               
-        await post.updateOne({$pull:{like_users: user_id}})
-        await post.updateOne({$set: {likes: cnt-1}})
-        res.status(201).json({ result: 'success', msg: '좋다 말았어요.' });
-    }else {       
-                    
-        await post.updateOne({$push:{like_users: user_id}})
-        await post.updateOne({$set: {likes: cnt+1}})
-        res.status(201).json({ result: 'success', msg: '좋아요!' });
+//taein
+router.patch('/posts/:post_id/like',authMiddleware,async (req, res) => {
+    try{
+        const { user_id } = req.body;
+        const {post_id} = req.params;
+        //console.log(postId);
+        const post = await Post.findOne({_id:{ $in: post_id } }).exec();  
+    
+       // console.log("post",post);
+        let cnt = post.likes;
+        
+        const found = post.like_users.find(e => e === user_id);
+        
+            if(found)  {                    
+                await post.updateOne({$pull:{like_users: user_id}})
+                await post.updateOne({$set: {likes: cnt-1}})
+                res.status(201).json({ result: 'success', msg: '좋다 말았어요.' });
+            }else {                                  
+                await post.updateOne({$push:{like_users: user_id}})
+                await post.updateOne({$set: {likes: cnt+1}})
+                res.status(201).json({ result: 'success', msg: '좋아요!' });
+            } 
+    } catch (error) {    
+        res.status(400).send({
+        errorMessage: '좋아요 선택 실패하였습니다.',
+        });
     }
-    }
-);
+    
+});
+
+
 
 // 게시글 상세 조회 API
 /*
-router.get("/post/:postId", authMiddleware, async (req, res) => { 
+router.get("/post/:post_id", authMiddleware, async (req, res) => { 
     const { user } = res.locals;
-    const { postId } = req.params;
+    const { post_id } = req.params;
 
-    const [detail] = await Post.find({ postId: Number(postId) });
+    const [detail] = await Post.find({ postId: Number(post_id) });
 if(detail.nickname !== user.nickname){
     console.log("유효하지 않은 회원정보");
     res.status(400).redirect("/")
@@ -162,19 +188,6 @@ if(detail.nickname !== user.nickname){
 });
 */
 /*
-router.put("/post/:postId", authMiddleware, async (req, res) => { // 게시글 수정 API
-    const { user } = res.locals;
-    const { postId } = req.params;
-    const { password, title, content } = req.body;
-    const correctPw = await Post.findOne({user})
-    if (password === correctPw.password) {
-        const updatepost = await Post.updateOne({ postId: Number(postId) }, { $set: { title, content } });
-        res.status(201).json({ post: updatepost })
-    } else {
-        return res.status(401).json({ success: false, errorMessage: "비밀번호 재확인." });
-    };
-});
-
 router.delete("/post/:postId", authMiddleware, async (req, res) => { // 게시글 삭제 API
     const { user } = res.locals;
     const { postId } = req.params;
