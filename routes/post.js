@@ -5,32 +5,83 @@ const router = express.Router();
 
 
 
-// 게시글 전체목록 조회 API 
+/**
+ * 전체 게시글 불러오기 API. index.ejs > getArticles()
+ */
+//taein
 router.get("/posts", async (req, res) => { 
-    //get Method를 가진 post URL을 가진 json 데이터로 내보내는 API
+   // [{ post의 내용. _id: ..., title: ..., content: ... }, { }, { }]
     const { postDate } = req.body;
 
-    const post = await Post.find({ postDate }).sort({ postDate: -1 }); //post라는 스키마에서 find, sort()날짜기준 내림차순 
-    res.json({ //json형식으로 응답
-        posts: post//원래는 json 형식으로 post:post 로 작성되어야한다. 그러나 key와 value가 같다면 약식이 가능하다. (객체 초기자)
+    const posts = await Post.find().sort({ createdAt: 'desc' }).exec(); //post라는 스키마에서 find, sort()날짜기준 내림차순 
+     // console.log("posts",posts);    
+    // userId만 추출. ['userId1', 'userId2', 'userId3', ..]
+    const userIds = posts.map((author) => author.user_id);
+    
+    // $in : 비교 연산자. 주어진 배열(userIds) 안에 속하는 값
+    const userInfoById = await User.find({ $in: userIds
+    })
+        .exec()
+        .then((user) =>
+          user.reduce(
+                (prev, a) => ({
+                    ...prev,   
+                    [a.user_id]: a, 
+                 }),
+                    {} 
+                    )
+                    );     
+    res.send({
+       posts: posts.map((a) => ({     
+           
+            postId: a.postId,
+            thumbnail_url: a.thumbnail_url,
+            onair_year:a.onair_year,
+            title: a.title,
+            ost_url: a.ost_url,
+            content: a.content,
+            createdAt: a.createdAt,
+            likes: a.likes,
+            like_users: a.like_users,
+            userInfo: userInfoById[a.user_id],
+        })),
     });
 });
 
-// 게시글 작성 API
+/**
+ * 글 생성, 입력 API 
+*/
+//taein
 router.post("/write", authMiddleware, async (req, res) => { 
+    
     try {
-        const { user } = res.locals;
-        const { title, content, postDate } = req.body; // body 정보가져옴
+        //const { user } = res.locals;
+        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = req.body; // body 정보가져옴
 
         // 자동으로 postId를 넣는 라이브러리 설치 후 중복확인 절차 제거
         // isExist = await Post.find({ postId });
         // if (isExist.length) {
         //     return res.status(400).json({ success: false, errorMessage: "이미 있는 게시글입니다." });
         // }
+        
+    if(!(ost_url.includes("www.youtube.com"||"youtu.be"))){
+        res.status(401).send({
+            errorMessage: 'youtube의 영상만 가능합니다.',
+        });
+        
+    }
+    const posting = await Post.create({
+        title,
+        user_id,
+        thumbnail_url, 
+        onair_year, 
+        content,
+        ost_url,
+    });
 
-        const createpost = await Post.create({ postId, nickname: user.nickname, title, content, postDate });
+    res.status(201).json({ result: 'success', msg: '내 추천만화가 등록되었습니다.' });    
 
-        res.json({ post: createpost });
+        //res.json({ post: createpost });
     } catch (err) {
         console.log(err)
         res.status(400).send({
@@ -38,8 +89,37 @@ router.post("/write", authMiddleware, async (req, res) => {
         })
     };
 });
+/**
+ * 좋아요 기능 API 
+*/
+//taein
+router.patch('/posts/:postId/like',authMiddleware,async (req, res) => {
+    const { user_id } = req.body;
+    const {postId} = req.params;
+   // console.log(postId);
+    const post = await Post.findOne({_id:{ $in: postId } }).exec();  
+   
+   // console.log("post",post);
+    let cnt = post.likes;
+    //console.log("type",typeof(cnt))
+    const found = post.lovers.find(e => e === user_id);
+     
+    if(found)  {
+               
+        await post.updateOne({$pull:{like_users: user_id}})
+        await post.updateOne({$set: {likes: cnt-1}})
+        res.status(201).json({ result: 'success', msg: '좋다 말았어요.' });
+    }else {       
+                    
+        await post.updateOne({$push:{like_users: user_id}})
+        await post.updateOne({$set: {likes: cnt+1}})
+        res.status(201).json({ result: 'success', msg: '좋아요!' });
+    }
+    }
+);
 
 // 게시글 상세 조회 API
+/*
 router.get("/post/:postId", authMiddleware, async (req, res) => { 
     const { user } = res.locals;
     const { postId } = req.params;
@@ -53,8 +133,8 @@ if(detail.nickname !== user.nickname){
         detail, // detail이라는 Key에 json 데이터를 넣어서 응답을 준다.
     });
 });
-
-
+*/
+/*
 router.put("/post/:postId", authMiddleware, async (req, res) => { // 게시글 수정 API
     const { user } = res.locals;
     const { postId } = req.params;
@@ -138,5 +218,5 @@ router.get('/posts/:postId', async (req, res) => {
         commentsInfo: commentsInfo,
     }); // read.ejs 의 내용 render, postId 값이 일치하는 post 내용 전달
 });
-
+*/
 module.exports = router; // app.js의 require()로 리턴. module.exports는 꼭 있어야함.
