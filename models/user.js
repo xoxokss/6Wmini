@@ -6,6 +6,7 @@ const UserSchema = new mongoose.Schema({   //다른 곳은 new 안쓰는데 차�
   profile_image: Number,
   nickname: String,
   password: String,
+  
 });
 UserSchema.virtual("userId").get(function () {
   return this._id.toHexString();

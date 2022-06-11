@@ -19,4 +19,5 @@ const connect = () => { //mongoose 연결
     });
 };
 
+
 module.exports = connect; //app.js로 보냄
