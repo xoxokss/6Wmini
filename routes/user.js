@@ -9,6 +9,7 @@ router.get("/login", (req, res) => {
     res.json({ success: true, call: "로그인 페이지입니다." })
 });
 
+//test
 
 const nickname_pattern = /[a-zA-Z0-9]/; // 닉네임은 알파벳 대소문자 (a~z, A~Z), 숫자(0~9) 
 const postUsersSchema = Joi.object({
