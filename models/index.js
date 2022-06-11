@@ -2,11 +2,13 @@ const mongoose = require("mongoose"); //몽구스 연결
 
 const connect = () => { //mongoose 연결
     mongoose
-    .connect("mongodb+srv://test:sparta@cluster0.l2ux3.mongodb.net/MINI?retryWrites=true&w=majority", {
+    
+        .connect("mongodb+srv://test:sparta@cluster0.l2ux3.mongodb.net/MINI?retryWrites=true&w=majority", {
             ignoreUndefined: true,
             useNewUrlParser: true,
             useUnifiedTopology: true,
         })
+  
         .catch((err) => {
             // undefined값은 무시함. 상세조회API에 Query String 필터링 기능 구현을 위해 작성
             console.log(err);

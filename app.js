@@ -30,7 +30,7 @@ app.use("/api", [postRouter, commentRouter, userRouter]); // /api라는 url 요�
 
 //루트 디렉토리 http://localhost:8080
 app.get("/", (req, res) => {
-  res.send("Hello World!");
+  res.send("Hello! 22222");
 });
 
 // app.get("/", async (req, res) => {
