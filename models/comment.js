@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
 
-const CommentSchema = mongoose.Schema(
+const CommentSchema = new mongoose.Schema(
     {
-        postId: String,
-        userId: String,
-        commentContent: String,
+        post_id: String,
+        user_id: String,
+        nickname: String,
+        comment: String,
+        // created_at : { type : Date, default : Date.now},
     },
-    { timestamps: true }
+   { timestamps: { createdAt: 'created_at'}}, // 자동 타임스탬프가 작동하는지 확인하기
 );
 
-CommentSchema.virtual('commentId').get(function () {
+CommentSchema.virtual('comment_id').get(function () {
     return this._id.toHexString();
 });
 CommentSchema.set('toJSON', {
