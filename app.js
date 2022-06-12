@@ -1,5 +1,6 @@
 const express = require("express"); //express 모듈 불러오기
 const app = express();
+const cors = require("cors"); // CORS 모듈 불러오기
 const connect = require("./models"); // index.js 파일 연결해서 mongoDB 연결
 
 const port = 8080;
@@ -19,6 +20,8 @@ const requestMiddleware = (req, res, next) => {
 };
 
 // app.use(express.static('static')); //프론트엔드 static 폴더 연결
+
+app.use(cors()); // CORS 모듈 실행
 
 app.use(express.json()); // json 미들웨어 실행
 
