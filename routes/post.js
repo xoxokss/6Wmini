@@ -2,6 +2,7 @@ const express = require("express");
 const Post = require("../models/post"); 
 const User = require("../models/user");
 const authMiddleware = require("../middlewares/auth-middleware");
+const Joi = require("joi");
 const router = express.Router();
 
 /**
@@ -16,7 +17,7 @@ router.get("/posts", async (req, res) => {
     //console.log(posts); []배열 안에 게시글 하나씩[{게시글1},{게시글2},{게시글3}]   
     
     const user_ids = posts.map((writer) =>writer.user_id);
-    console.log(user_ids);  //user_id만 추출. ['user_id1', 'user_id2', 'user_id3', ..]
+    //console.log(user_ids);  //user_id만 추출. ['user_id1', 'user_id2', 'user_id3', ..]
     // $in mongodb query
     const userInfoById = await User.find({
         user_id: { $in: user_ids },
@@ -45,17 +46,50 @@ router.get("/posts", async (req, res) => {
  * 글 생성, 입력 API 
 */
 //taein
+const post_schema = Joi.object({
+      
+    title: Joi.string(),
+    thumbnail_url: Joi.string().required(),
+    onair_year: Joi.number(), //1992, 2000, 1980 4자리년도 숫자형식으로
+    //nickname: Joi.string(),
+    content: Joi.string(),
+    ost_url: Joi.string(),  //youtube 주소로만 
+    user_id: Joi.string(),  
+    likes:{
+        type: Number,
+        default: 0,  //좋아요 수 default는 0 으로준다.
+    },
+    like_users: [String], //이 글에 좋아요를 누른 사람들의 id값으로 좋아요를 눌렀으면 배열에 들어간다.
+});
+
 router.post("/posts", authMiddleware, async (req, res) => {  
     try {      
         //const { user } = res.locals;
-        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = req.body; // body 정보가져옴                
+        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = await post_schema.validateAsync(req.body); // body 정보가져옴                
         if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
-            res.status(401).send({
+            res.status(412).send({
                 errorMessage: 'youtube의 영상만 가능합니다.',
             });   
             return;     
+        } else if (!(onair_year>1900&&onair_year<2022)) {
+            res.status(412).send({
+                errorMessage: "년도 형식으로 입력해주세요."
+            });
+            return; 
+        }   
+        else if (content.search(/^[\s\S]{1,2000}$/) == -1) {
+            res.status(412).send({
+                errorMessage: "게시글 내용의 형식이 일치하지 않습니다."
+            });
+            return;
+        } else if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
+            res.status(412).send({
+                errorMessage: "공백으로만 이루어진 게시글은 작성할 수 없습니다."
+            });
+            return;
         }
-        const posting = await Post.create({
+
+        await Post.create({
                 title,
                 user_id,
                 thumbnail_url, 
@@ -169,89 +203,46 @@ router.patch('/posts/:post_id/like',authMiddleware,async (req, res) => {
     
 });
 
-
-
-// 게시글 상세 조회 API
-/*
-router.get("/post/:post_id", authMiddleware, async (req, res) => { 
-    const { user } = res.locals;
-    const { post_id } = req.params;
-
-    const [detail] = await Post.find({ postId: Number(post_id) });
-if(detail.nickname !== user.nickname){
-    console.log("유효하지 않은 회원정보");
-    res.status(400).redirect("/")
-}
-    res.json({ //json형식으로 상세 조회 응답
-        detail, // detail이라는 Key에 json 데이터를 넣어서 응답을 준다.
-    });
-});
+/**
+ * 게시글 상세조회 기능 API 
 */
-/*
-router.delete("/post/:postId", authMiddleware, async (req, res) => { // 게시글 삭제 API
-    const { user } = res.locals;
-    const { postId } = req.params;
-    const { password } = req.body;
-    const correctPw = await Post.findOne({ user })
-    if (password == correctPw.password) {
-        const deletepost = await Post.deleteOne({ postId: Number(postId) });
-        res.status(200).json({ post: deletepost })
-    } else {
-        return res.status(401).json({ success: false, errorMessage: "비밀번호 재확인." });
-    };
+//taein
+router.get('/posts/:post_id', async (req, res) => {
+    try{
+        const { post_id } = req.params; 
+        
+        const post = await Post.findById(post_id);
+        //console.log(post);
+        //console.log(post.user_id);
+        const post_user = await User.findOne({user_id:{ $in: post.user_id } }).exec(); 
+        //console.log("user",post_user);
+        const postInfo = {
+            post_id,
+            title: post.title,
+            thumbnail_url: post.thumbnail_url,
+            onair_year:post.onair_year,
+            content: post.content,
+            ost_url:post.ost_url,
+            user_id: post_user.user_id,
+            nickname: post_user.nickname,
+            created_at: post.createdAt,
+            likes:post_user.likes
+        };  
+        res.status(200).send(postInfo);
+    } catch (error) {    
+        res.status(400).send({
+        errorMessage: '실패하였습니다.',
+    });
+    } 
+   
 });
 
-
-
-
-
+/*
 router.get('/post/write', async (req, res) => {
     const post = ''; // write.ejs는 modify 부분과 같이 쓰므로,
     //새 글 쓰기 일 경우 !post 이 true 로 넘길 수 있도록 빈 스트링값 전달
     res.status(200).render('write', { post: post });
-});
-router.get('/posts/:postId', async (req, res) => {
-    const { postId } = req.params; // localhost:3000/api/posts/1, 2, ... <- 여기서 req.params는 { postId : '1' }, postId = 1
-
-    const post = await Post.findById(postId);
-    const postAuthor = await User.findById(post.userId);
-    const comments = await Comment.find({ postId: postId }).exec();
-    
-
-    const commentUserIds = comments.map(
-        (commentAuthor) => commentAuthor.userId
-    );
-  
-    const commentAuthorInfoById = await User.find({
-        _id: { $in: commentUserIds },
-    })
-        .exec()
-        .then((commentAuthor) =>
-            commentAuthor.reduce(
-                (prev, ca) => ({
-                    ...prev,
-                    [ca.userId]: ca,
-                }),
-                {}
-            )
-        );
-
-    const postInfo = {
-        postId: post._id,
-        title: post.title,
-        content: post.content,
-        userId: postAuthor.userId,
-        nickname: postAuthor.nickname,
-        createdAt: post.createdAt,
-    };
-
-    const commentsInfo = comments.map((comment) => ({
-        commentId: comment.commentId,
-        content: comment.commentContent,
-        userInfo: commentAuthorInfoById[comment.userId],
-        createdAt: comment.createdAt,
-    }));
-    
+});    
    
     res.status(200).render('read', {
         post: postInfo,
