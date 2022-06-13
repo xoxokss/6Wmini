@@ -82,7 +82,7 @@ router.post("/user/login", async(req,res)=>{
            return;
        }
       // console.log("key",process.env.JWT_SECRET);
-       const token = jwt.sign({userId: user.userId}, process.env.JWT_SECRET);
+       const token = jwt.sign({user_id: user.user_id}, process.env.JWT_SECRET);
        //console.log("token",token);
 
        res.send({
@@ -105,7 +105,7 @@ router.get("/user/me",authMiddleware, async (req,res)=>{  // "/users/me" 경로�
    //console.log("/users/me 호출테스트",user,cnt);
    res.send({
        user: {  
-           userId: user.userId,          
+           user_id: user.user_id,          
            nickname: user.nickname,
        },
    });
