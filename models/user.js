@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({   //다른 곳은 new 안쓰는데 차이가 ??
 
   user_id: String,
-  profile_image: Number,
+  profile_img: Number,
   nickname: String,
   password: String,
 });

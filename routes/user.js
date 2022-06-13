@@ -18,7 +18,7 @@ const postUsersSchema = Joi.object({
         .required(),
     password: Joi.string().min(4).required(),
     confirm_password: Joi.string().required(),
-    profile_image: Joi.number().required(),
+    profile_img: Joi.number().required(),
     user_id: Joi.string().required().email(),
 });
 //회원가입 api
@@ -26,7 +26,7 @@ router.post("/user/signup", async (req,res) => {
 
     
    try{
-       const { user_id, profile_image, nickname, password, confirm_password, } = await postUsersSchema.validateAsync(req.body);
+       const { user_id, profile_img, nickname, password, confirm_password, } = await postUsersSchema.validateAsync(req.body);
        
        
        if(password.includes(nickname)){            
@@ -52,7 +52,7 @@ router.post("/user/signup", async (req,res) => {
            });
            return;
        }
-       const user = new User({user_id, profile_image,nickname, password });
+       const user = new User({user_id, profile_img,nickname, password });
        await user.save();
 
        res.status(201).send({});
@@ -87,9 +87,8 @@ router.post("/user/login", async(req,res)=>{
        const token = jwt.sign({userId: user.userId}, process.env.JWT_SECRET);
        //console.log("token",token);
 
-       res.send({
-               token,
-       });
+       res
+       .send({ token, });
 
    }catch(err){
         console.log(err);
