@@ -9,38 +9,40 @@ router.get("/login", (req, res) => {
     res.json({ success: true, call: "로그인 페이지입니다." })
 });
 
-
 const nickname_pattern = /[a-zA-Z0-9]/; // 닉네임은 알파벳 대소문자 (a~z, A~Z), 숫자(0~9) 
 const postUsersSchema = Joi.object({
-   user_id: Joi.string().required(),
-   profile_image: Joi.number().required(),
+   
     nickname: Joi.string()
         .min(3)
         .pattern(new RegExp(nickname_pattern))
         .required(),
     password: Joi.string().min(4).required(),
-    confirmPassword: Joi.string().required(),
+    confirm_password: Joi.string().required(),
+    profile_image: Joi.number().required(),
+    user_id: Joi.string().required().email(),
 });
-//회원가입 API
+//회원가입 api
 router.post("/user/signup", async (req,res) => {
 
+    
    try{
-       const { user_id, profile_image, nickname, password, confirmPassword} = await postUsersSchema.validateAsync(req.body);
-       console.log(req.body);
+       const { user_id, profile_image, nickname, password, confirm_password, } = await postUsersSchema.validateAsync(req.body);
+       
        
        if(password.includes(nickname)){            
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
                errorMessage: "닉네임이 패스워드에 포함되어 있습니다!",
            });
            return;
-       }
+       }  
 
-       if(password !== confirmPassword){
+       if(password !== confirm_password){
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
                errorMessage: "패스워드가 패스워드 확인란과 일치하지 않습니다.",
            });
            return;
        }
+       
        const existUsers = await User.find({
            nickname
        });

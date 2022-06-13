@@ -6,7 +6,7 @@ require("dotenv").config(); // dotenv 모듈 불러오기 및 연결 구성
 
 const port = 8080;
 
-connect(); //mongoDB 연결 실행
+connect("mongodb+srv://test:sparta@cluster0.l2ux3.mongodb.net/MINI?retryWrites=true&w=majority"); //mongoDB 연결 실행
 
 const postRouter = require("./routes/post"); // require 함수로 post 모듈(board.js)을 가지고옴.
 
