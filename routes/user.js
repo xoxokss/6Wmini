@@ -19,7 +19,7 @@ const postUsersSchema = Joi.object({
     password: Joi.string().min(4).required(),
     confirm_password: Joi.string().required(),
     profile_image: Joi.number().required(),
-    user_id: Joi.string().required(),
+    user_id: Joi.string().required().email(),
 });
 //회원가입 api
 router.post("/user/signup", async (req,res) => {
@@ -34,17 +34,7 @@ router.post("/user/signup", async (req,res) => {
                errorMessage: "닉네임이 패스워드에 포함되어 있습니다!",
            });
            return;
-       }
-
-       const emailRegExp = /^[A-Za-z0-9_]+[A-Za-z0-9]*[@]{1}[A-Za-z0-9]+[A-Za-z0-9]*[.]{1}[A-Za-z]{1,3}$/;
-            if (!emailRegExp.test(user_id)){
-                alert("이메일 형식이 올바르지 않습니다!");
-                form.mail.value = ""; 
-                form.mail.focus();
-                return false;
-            }
-            
-
+       }  
 
        if(password !== confirm_password){
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
