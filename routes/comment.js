@@ -7,12 +7,11 @@ const router = express.Router();
 router.get("/comment/:post_id", async (req, res) => {
   const { post_id } = req.params;
   // post_id에 속한 코멘트를 찾아서 comment_id, nickname, comment, created_at 을 보내줘야함
-  const comment = await Comment.find({ post_id: post_id }).sort("-comment_id"); // 댓글 작성시간 순으로 정렬
-  console.log(comment);
+  const comments = await Comment.find({ post_id: post_id }).sort("-comment_id"); // 댓글 작성시간 순으로 정렬
+  console.log(comments);
 
   res
-  .send({ result: true })
-  .json({ comments: comment });
+  .json({ result: true, comments: comment });
 });
 
 //댓글 작성
@@ -29,7 +28,6 @@ router.post("/comment", authMiddleware, async (req, res) => {
     res.send({ result: true });
   } catch (err) {
     console.log(err);
-    res.redirect("/");
   }
 });
 
