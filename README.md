@@ -55,7 +55,7 @@
 <br/>
 
 ## 🎨 프로젝트 초안(와이어 프레임)
-[Figma 링크](https://www.figma.com/file/Nb2JQYk7ZFzk4qywUeH9ka/2%EC%A1%B0-%EB%AF%B8%EB%8B%88%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84)
+[와이어프레임 Figma 링크](https://www.figma.com/proto/Nb2JQYk7ZFzk4qywUeH9ka/2%EC%A1%B0-%EB%AF%B8%EB%8B%88%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=34%3A12&scaling=min-zoom&page-id=0%3A1)
 
 ## 🔨 개발툴
  #### Backend
