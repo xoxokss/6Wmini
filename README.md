@@ -8,12 +8,12 @@
 <br/>
 
 ## 팀원 소개와 역할
-#### Frontend
+#### Frontend (https://github.com/Trainy32/Anime)
 강수현 : 글 작성 & 수정, 메인 리스트 디스플레이 <br/>
 김은진 : 로그인, 회원가입, 헤더 <br/>
 정예빈 : 글 상세보기, 삭제하기, 좋아요, 댓글 기능 <br/><br/>
 
- #### Backend
+ #### Backend (https://github.com/xoxokss/6Wmini/)
 김상선: 댓글 작성 수정 삭제 관련 API <br/>
 진태인: 게시글 작성 조회 수정 삭제 좋아요 관련 API <br/>
 최봉규: 회원가입, 로그인 관련 API <br/><br/>
@@ -63,7 +63,6 @@
 -   Server: AWS EC2 (Ubuntu 18.04 LTS)
 -   Database: MongoDB
 -   Runtime Flatform : Node.js
--   View : HTML, CSS, Javascript
 -   Tool : Git, Notion
 
 <br/>
@@ -83,7 +82,7 @@
 <li> <b> 메인페이지 </b><br/>
 : 추천순, 방영연도 순의 2가지 방식으로 리스트를 정렬해서 볼 수 있습니다. <br/>
 : 게시글의 추천 수가 썸네일과 함께 디스플레이 됩니다. <br/>
-: Windowing 기법을 이용한 무한스크롤 -> 구현 예정 <br/>
+: Windowing 기법을 이용한 무한스크롤 <br/>
   
 <br/>
 
