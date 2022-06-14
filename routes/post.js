@@ -13,8 +13,8 @@ router.get("/posts/:sort", async (req, res) => {
     try{
     
         const {sort} = req.params;
-        let posts=[];
-        
+        let posts=[];       
+             
         if(sort==="d_time"){
             posts = await Post.find().sort({ createdAt: 'desc' }).exec(); // sort()작성시간 기준 내림차순   
         }else if(sort==="a_time"){
@@ -36,6 +36,7 @@ router.get("/posts/:sort", async (req, res) => {
             .then((user) =>user.reduce((prev, a) => ({...prev,[a.user_id]:{user_id:a.user_id,nickname:a.nickname}, }), {} )); 
             //console.log(userInfoById);
             //프론트에서 원하는데로 가공해주자
+           
         res.send({
             posts: posts.map((a) => ({   
 
@@ -43,11 +44,11 @@ router.get("/posts/:sort", async (req, res) => {
                     thumbnail_url: a.thumbnail_url,
                     onair_year:a.onair_year,
                     title: a.title,
-                    ost_url: a.ost_url,
-                    content: a.content,
-                    createdAt: a.createdAt,
+                    //ost_url: a.ost_url,
+                    //content: a.content,
+                    created_at: a.createdAt.toLocaleDateString('ko-KR')+a.createdAt.toLocaleTimeString('ko-KR'),
                     likes: a.likes,
-                    like_users: a.like_users,
+                    //like_users: a.like_users,
                     userInfo: userInfoById[a.user_id],
                 })),
         });     
@@ -248,7 +249,8 @@ router.get('/post/detail/:post_id', async (req, res) => {
         const post = await Post.findById(post_id);
         //console.log(post);
         //console.log(post.user_id);
-        const post_user = await User.findOne({user_id:{ $in: post.user_id } }).exec(); 
+        const post_user = await User.findOne({$in: post.user_id}).exec(); 
+        
         const current_year = new Date().getFullYear();
         
         //console.log("user",post_user);
