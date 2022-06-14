@@ -4,7 +4,7 @@ const cors = require("cors"); // CORS 모듈 불러오기
 const connect = require("./models"); // index.js 파일 연결해서 mongoDB 연결
 require("dotenv").config(); // dotenv 모듈 불러오기 및 연결 구성
 
-const port = 8080;
+const port = process.env.PORT
 
 connect(); //mongoDB 연결 실행
 
