@@ -15,7 +15,7 @@ router.get("/comment/:post_id", async (req, res) => {
 router.post("/comment/:post_id", authMiddleware, async (req, res) => {
   try {
     const { user } = res.locals; // JWT 인증 정보
-    const { comment } = req.body; //
+    const { comment } = req.body; // 사용자가 입력한 댓글
     const { post_id } = req.params; // 해당 게시글 post_id를 parameter로 받음.
     await Comment.create({
       post_id,
@@ -23,7 +23,6 @@ router.post("/comment/:post_id", authMiddleware, async (req, res) => {
       user_id: user.user_id,
       nickname: user.nickname,
     });
-    // }
     res.status(201).send({ result: true, message: "댓글 작성 완료" });
   } catch (err) {
     console.log(err);
@@ -36,16 +35,13 @@ router.patch("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
   const { comment } = req.body;
-  const exist_Comment = await Comment.findOne({ _id: comment_id });
-  console.log(exist_Comment);
+  // const exist_Comment = await Comment.findOne({ _id: comment_id });
+  const exist_Comment = await Comment.findByIdAndUpdate(comment_id);
 
-  if (!user.nickname === exist_Comment.nickname) {
+  if (!user.user_id === exist_Comment.user_id) {
     res.send({ result: false, message: "사용자가 작성한 댓글이 아닙니다." });
   } else {
-    await Comment.updateOne(
-      { _id: comment_id },
-      { $set: { comment: comment } }
-    );
+    await Comment.findByIdAndUpdate(comment_id, { $set: { comment: comment } });
     res.status(200).send({ result: true, message: "댓글 수정 완료" });
   }
 });
@@ -55,13 +51,13 @@ router.delete("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
 
-  const exist_Comment = await Comment.findOne({ _id: comment_id });
+  const exist_Comment = await Comment.findByIdAndDelete(comment_id);
   console.log(exist_Comment); //DB에서 찾았는지 확인용
-  if (user.user_id === exist_Comment.user_id) {
+  if (!user.user_id === exist_Comment.user_id) {
+    res.send({ result: false, message: "사용자가 작성한 댓글이 아닙니다." });
+  } else {
     await Comment.deleteOne({ _id: comment_id });
     res.status(200).send({ result: true, message: "댓글 삭제 완료" });
-  } else {
-    res.status(400).send({ result: false });
   }
 });
 
