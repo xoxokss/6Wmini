@@ -6,7 +6,6 @@ const CommentSchema = new mongoose.Schema(
     user_id: String,
     nickname: String,
     comment: String,
-    // created_at : { type : Date, default : Date.now},
   },
   { timestamps: { createdAt: "created_at" } } // 자동 타임스탬프가 작동하는지 확인하기
 );
