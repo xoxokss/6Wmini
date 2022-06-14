@@ -7,24 +7,24 @@ const router = express.Router();
 router.get("/comment/:post_id", async (req, res) => {
   const { post_id } = req.params;
   // post_id에 속한 코멘트를 찾아서 comment_id, nickname, comment, created_at 을 보내줘야함
-  const comments = await Comment.find({ post_id: post_id }).sort("-comment_id"); // 댓글 작성시간 순으로 정렬
+  const comments = await Comment.find({ post_id: post_id }).sort("created_at"); // 댓글 작성시간 순으로 정렬
   console.log(comments);
-
-  res
-  .json({ result: true, comments: comment });
+  res.json({ result: true, comments });
 });
 
-//댓글 작성
-router.post("/comment", authMiddleware, async (req, res) => {
+//댓글 작성 API
+router.post("/comment/:post_id", authMiddleware, async (req, res) => {
   try {
-    const { user } = res.locals;
-    const { post_id, comment } = req.body;
-    await Comment.create({
-      comment_id,
-      post_id,
-      comment,
-      nickname: user.nickname,
-    });
+    const { user } = res.locals; // JWT 인증 정보
+    const { user_id, comment } = req.body; // 프론트에서 user_id와 comment를 request 받음
+    const { post_id } = req.params; // 해당 게시글 post_id를 parameter로 받음.
+    if (user_id === user.user_id) { // if user_id가 DB와 일치한다면
+      await Comment.create({ // Commnet DB에 document object 생성.
+        post_id,
+        comment,
+        nickname: user.nickname,
+      });
+    }
     res.send({ result: true });
   } catch (err) {
     console.log(err);
