@@ -12,7 +12,7 @@ const CommentSchema = new mongoose.Schema(
 );
 
 CommentSchema.virtual("comment_id").get(function () {
-  return this.c_id.toHexString();
+  return this._id.toHexString();
 });
 CommentSchema.set("toJSON", {
   virtuals: true,
