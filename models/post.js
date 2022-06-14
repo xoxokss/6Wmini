@@ -5,6 +5,7 @@ const PostSchema = mongoose.Schema(
         title: String,
         thumbnail_url: String,
         onair_year: Number, //1992, 2000, 1980 4자리년도 숫자형식으로
+        nickname: String,
         content: String,
         ost_url: String,  //youtube 주소로만 
         user_id: String,  
@@ -17,7 +18,7 @@ const PostSchema = mongoose.Schema(
     { timestamps: true }
 );
 
-PostSchema.virtual('postId').get(function () {
+PostSchema.virtual('post_id').get(function () {
     return this._id.toHexString();
 });
 
