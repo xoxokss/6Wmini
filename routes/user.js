@@ -66,6 +66,25 @@ router.post("/user/signup", async (req,res) => {
    }
    
 });
+// user_id 중복체크 API
+router.post('/user/id_check', async (req, res) => {
+    const {user_id} = req.body;
+    // console.log(user_id);
+
+    const existUsers = await User.find({
+        user_id
+    });
+    if (existUsers.length) {
+        res.send({
+            alert: "아이디가 중복되었습니다"
+        });
+        return;
+    }
+    
+    res.send({
+        alert: '사용 가능합니다.'
+    });
+});
 
 /**
 *로그인 API 
@@ -106,7 +125,8 @@ router.get("/user/me",authMiddleware, async (req,res)=>{  // "/users/me" 경로�
    //console.log("/users/me 호출테스트",user,cnt);
    res.send({
        user: {  
-           userId: user.userId,          
+           user_id: user.user_id,          
+           profile_img : user.profile_img,
            nickname: user.nickname,
        },
    });
