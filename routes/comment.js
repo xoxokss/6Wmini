@@ -8,26 +8,26 @@ router.get("/comment/:post_id", async (req, res) => {
   const { post_id } = req.params;
   // post_id에 속한 코멘트를 찾아서 comment_id, nickname, comment, created_at 을 보내줘야함
   const comments = await Comment.find({ post_id: post_id }).sort("created_at"); // 댓글 작성시간 순으로 정렬
-  console.log(comments);
-  res.json({ result: true, comments : comments});
+  res.json({ result: true, comments: comments });
 });
 
 //댓글 작성 API
 router.post("/comment/:post_id", authMiddleware, async (req, res) => {
   try {
     const { user } = res.locals; // JWT 인증 정보
-    const { user_id, comment } = req.body; // 프론트에서 user_id와 comment를 request 받음
+    const { comment } = req.body; //
     const { post_id } = req.params; // 해당 게시글 post_id를 parameter로 받음.
-    if (user_id === user.user_id) { // if user_id가 DB와 일치한다면
-      await Comment.create({ // Commnet DB에 document object 생성.
-        post_id,
-        comment,
-        nickname: user.nickname,
-      });
-    }
-    res.send({ result: true });
+    await Comment.create({
+      post_id,
+      comment,
+      user_id: user.user_id,
+      nickname: user.nickname,
+    });
+    // }
+    res.status(201).send({ result: true, message: "댓글 작성 완료" });
   } catch (err) {
     console.log(err);
+    res.status(400).send({ result: false });
   }
 });
 
@@ -35,17 +35,18 @@ router.post("/comment/:post_id", authMiddleware, async (req, res) => {
 router.patch("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
-  const { comment, nickname } = req.body;
-  console.log(comment, user.nickname);
+  const { comment } = req.body;
+  const exist_Comment = await Comment.findOne({ _id: comment_id });
+  console.log(exist_Comment);
 
-  if (nickname === user.nickname) {
-    await Comment.updateOne(
-      { comment_id: comment_id },
-      { $set: { comment: comment } }
-    ); //db의 필드값: req.body
-    res.send({ result: true });
+  if (!user.nickname === exist_Comment.nickname) {
+    res.send({ result: false, message: "사용자가 작성한 댓글이 아닙니다." });
   } else {
-    res.send({ result: false });
+    await Comment.updateOne(
+      { _id: comment_id },
+      { $set: { comment: comment } }
+    );
+    res.status(200).send({ result: true, message: "댓글 수정 완료" });
   }
 });
 
@@ -53,13 +54,14 @@ router.patch("/comment/:comment_id", authMiddleware, async (req, res) => {
 router.delete("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
-  const { nickname } = req.body;
 
-  if (nickname === user.nickname) {
-    await Comment.deleteOne({ comment_id: comment_id });
-    res.send({ result: true, msg: "댓글 삭제 완료" });
+  const exist_Comment = await Comment.findOne({ _id: comment_id });
+  console.log(exist_Comment); //DB에서 찾았는지 확인용
+  if (user.user_id === exist_Comment.user_id) {
+    await Comment.deleteOne({ _id: comment_id });
+    res.status(200).send({ result: true, message: "댓글 삭제 완료" });
   } else {
-    res.send({ result: false });
+    res.status(400).send({ result: false });
   }
 });
 
