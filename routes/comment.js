@@ -36,14 +36,14 @@ router.patch("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
   const { comment } = req.body;
-  const exist_Comment = await Comment.findOne({ _id: comment_id });
+  const exist_Comment = await Comment.findById(comment_id);
   console.log(exist_Comment);
 
   if (!user.nickname === exist_Comment.nickname) {
     res.send({ result: false, message: "사용자가 작성한 댓글이 아닙니다." });
   } else {
-    await Comment.updateOne(
-      { _id: comment_id },
+    await Comment.findByIdAndUpdate(
+      comment_id, 
       { $set: { comment: comment } }
     );
     res.status(200).send({ result: true, message: "댓글 수정 완료" });
@@ -55,7 +55,7 @@ router.delete("/comment/:comment_id", authMiddleware, async (req, res) => {
   const { comment_id } = req.params;
   const { user } = res.locals;
 
-  const exist_Comment = await Comment.findOne({ _id: comment_id });
+  const exist_Comment = await Comment.findByIdAndDelete(comment_id);
   console.log(exist_Comment); //DB에서 찾았는지 확인용
   if (user.user_id === exist_Comment.user_id) {
     await Comment.deleteOne({ _id: comment_id });
