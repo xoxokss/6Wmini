@@ -130,7 +130,7 @@ router.post("/post", authMiddleware, async (req, res) => {
 
 router.patch('/post/:post_id/',authMiddleware,async (req, res) => {
     try{
-        const { title, thumbnail_url, onair_year, content, ost_url, user_id } = await post_schema.validateAsync(req.body);        
+        const { title, thumbnail_url, onair_year, content, ost_url} = await post_schema.validateAsync(req.body);        
         const {post_id} = req.params;
         
         if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
@@ -247,23 +247,23 @@ router.get('/post/detail/:post_id', async (req, res) => {
         const { post_id } = req.params; 
         
         const post = await Post.findById(post_id);
-        //console.log(post);
-        //console.log(post.user_id);
-        const post_user = await User.findOne({$in: post.user_id}).exec(); 
+     
+        const post_user = await User.findOne({user_id:post.user_id}).exec(); 
+       
         
         const current_year = new Date().getFullYear();
         
-        //console.log("user",post_user);
+       
         const postInfo = {
-            //post_id,
+          
             title: post.title,
             thumbnail_url: post.thumbnail_url,
             onair_year: post.onair_year,
             content: post.content,
             ost_url: post.ost_url,
             user_id: post_user.user_id,
-            nickname: post_user.nickname,
-            period: current_year-post.onair_year,
+            nickname: post_user.nickname, //
+            period: current_year-post.onair_year,//방영시점으로부터 현재의 년도까지 흐른 년수를 담음
             created_at: post.createdAt,
             likes:post_user.likes
         };  
