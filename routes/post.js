@@ -8,11 +8,10 @@ const router = express.Router();
 /**
  * 전체 게시글 불러오기 API.
  */
-
 router.get("/posts/:sort", async (req, res) => { 
     try{
     
-        const {sort} = req.params;
+        const {sort} = req.params; //정렬에 대한 방법을 params로 받아온다. d_time,a_time,likes,release_year 4가지 정렬
         let posts=[];       
              
         if(sort==="d_time"){
@@ -33,24 +32,20 @@ router.get("/posts/:sort", async (req, res) => {
         const userInfoById = await User.find({
             user_id: { $in: user_ids },
         }).exec()    
-            .then((user) =>user.reduce((prev, a) => ({...prev,[a.user_id]:{user_id:a.user_id,nickname:a.nickname}, }), {} )); 
+          .then((user) =>user.reduce((prev, a) => ({...prev,[a.user_id]:{user_id:a.user_id,nickname:a.nickname}, }), {} )); 
             //console.log(userInfoById);
-            //프론트에서 원하는데로 가공해주자
+            //프론트에서 원하는데로 가공해서 전달
            
         res.send({
-            posts: posts.map((a) => ({   
-
+            posts: posts.map((a) => ({  
                     post_id: a.post_id,
                     thumbnail_url: a.thumbnail_url,
                     onair_year:a.onair_year,
-                    title: a.title,
-                    //ost_url: a.ost_url,
-                    //content: a.content,
+                    title: a.title,                  
                     created_at: a.createdAt.toLocaleDateString('ko-KR')+a.createdAt.toLocaleTimeString('ko-KR'),
-                    likes: a.likes,
-                    //like_users: a.like_users,
+                    likes: a.likes,                 
                     userInfo: userInfoById[a.user_id],
-                })),
+            })),
         });     
 
         }catch(error) {       
@@ -67,10 +62,9 @@ const post_schema = Joi.object({
       
     title: Joi.string(),
     thumbnail_url: Joi.string().required(),
-    onair_year: Joi.number(), //1992, 2000, 1980 4자리년도 숫자형식으로
-    //nickname: Joi.string(),
-    content: Joi.string(),
-    ost_url: Joi.string(),  //youtube 주소로만 
+    onair_year: Joi.number(), //1992, 2000, 1980 4자리년도 숫자형식으로   
+    content: Joi.string(),     
+    ost_url: Joi.string().allow(null,''),
     user_id: Joi.string(),  
     likes:{
         type: Number,
@@ -82,36 +76,36 @@ router.post("/post", authMiddleware, async (req, res) => {
     try {      
         
         const { user } = res.locals;
-        //console.log(user.user_id);
+        
         const { title, thumbnail_url, onair_year, content, ost_url } = await post_schema.validateAsync(req.body); // body 정보가져옴                
  
         if (!(onair_year>1900&&onair_year<2022)) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '년도 형식으로 입력해주세요.'
             });
             return; 
         }
         if (content.search(/^[\s\S]{1,2000}$/) == -1) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '게시글 내용의 형식이 일치하지 않습니다.'
             });
             return;
         }
         if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '공백으로만 이루어진 게시글은 작성할 수 없습니다.'
             });
             return;
         }
-        if(!ost_url.includes('')){
+        if(ost_url){ //ost_url을 입력 받지 않았을 경우를 처리한다
             if(!(ost_url.includes('www.youtube.com')||ost_url.includes('youtu.be'))){
-                res.status(412).send({
+                res.status(400).send({
                     errorMessage: 'youtube의 영상만 가능합니다.',
                 });   
                 return;     
             } 
         }       
-        await Post.create({
+        const result=await Post.create({
                 title,
                 user_id : user.user_id,
                 thumbnail_url, 
@@ -120,9 +114,9 @@ router.post("/post", authMiddleware, async (req, res) => {
                 ost_url,
                 nickname : user.nickname
         });          
-       
+       //console.log(result.post_id);
 
-        res.status(201).json({ result: 'success', msg: '내 추천만화가 등록되었습니다.' });    
+        res.status(201).json({ result: 'success', post_id: result.post_id});    
         
         } catch (err) {
             console.log(err)
@@ -142,26 +136,26 @@ router.patch('/post/:post_id/',authMiddleware,async (req, res) => {
         const {post_id} = req.params;
                
         if (!(onair_year>1900&&onair_year<2022)) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '년도 형식으로 입력해주세요.'
             });
             return; 
         } 
         if (content.search(/^[\s\S]{1,2000}$/) == -1) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '게시글 내용의 형식이 일치하지 않습니다.'
             });
             return;
         } 
         if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
-            res.status(412).send({
+            res.status(400).send({
                 errorMessage: '공백으로만 이루어진 게시글은 작성할 수 없습니다.'
             });
             return;
         }  
-        if(!ost_url.includes('')){
+        if(ost_url){ //ost_url을 입력 받지 않았을 경우를 처리한다
             if(!(ost_url.includes('www.youtube.com')||ost_url.includes('youtu.be'))){
-                res.status(412).send({
+                res.status(400).send({
                     errorMessage: 'youtube의 영상만 가능합니다.',
                 });   
                 return;     
@@ -226,7 +220,9 @@ router.delete('/post/:post_id',authMiddleware, async (req, res) => {
 */
 router.patch('/post/like/:post_id/',authMiddleware,async (req, res) => {
     try{
-        const { user_id } = req.body;
+        //const { user_id } = req.body;
+        const { user } = res.locals;
+        const user_id = user.user_id;
         const {post_id} = req.params;
         //console.log(postId);
         const post = await Post.findOne({_id:{ $in: post_id } }).exec();  
