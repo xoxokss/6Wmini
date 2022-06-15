@@ -13,10 +13,10 @@ const nickname_pattern = /[a-zA-Z0-9]/; // 닉네임은 알파벳 대소문자 (
 const postUsersSchema = Joi.object({
    
     nickname: Joi.string()
-        .min(3)
+        .min(3).max(8)
         .pattern(new RegExp(nickname_pattern))
         .required(),
-    password: Joi.string().min(4).required(),
+    password: Joi.string().min(4).max(8).required(),
     confirm_password: Joi.string().required(),
     profile_img: Joi.number().required(),
     user_id: Joi.string().required().email(),
@@ -31,14 +31,14 @@ router.post("/user/signup", async (req,res) => {
        
        if(password.includes(nickname)){            
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
-            alert: "닉네임이 패스워드에 포함되어 있습니다!",
+                alert: "닉네임이 패스워드에 포함되어 있습니다!",
            });
            return;
        }  
 
        if(password !== confirm_password){
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
-            alert: "패스워드가 패스워드 확인란과 일치하지 않습니다.",
+                alert: "패스워드가 패스워드 확인란과 일치하지 않습니다.",
            });
            return;
        }
@@ -48,7 +48,7 @@ router.post("/user/signup", async (req,res) => {
        });
        if(existUsers.length){
            res.status(400).send({
-            alert: "이미 가입된 이메일 또는 닉네임이 있습니다."
+                alert: "이미 가입된 이메일 또는 닉네임이 있습니다."
            });
            return;
        }
@@ -75,7 +75,7 @@ router.post('/user/id_check', async (req, res) => {
         user_id
     });
     if (existUsers.length) {
-        res.send({
+        res.status(400).send ({
             alert: "아이디가 중복되었습니다"
         });
         return;
