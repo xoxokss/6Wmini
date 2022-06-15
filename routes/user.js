@@ -31,14 +31,14 @@ router.post("/user/signup", async (req,res) => {
        
        if(password.includes(nickname)){            
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
-               errorMessage: "닉네임이 패스워드에 포함되어 있습니다!",
+            alert: "닉네임이 패스워드에 포함되어 있습니다!",
            });
            return;
        }  
 
        if(password !== confirm_password){
            res.status(400).send({    //상태코드가 400보다 작은 것은 client는 성공이라 인식 400(bad request)
-               errorMessage: "패스워드가 패스워드 확인란과 일치하지 않습니다.",
+            alert: "패스워드가 패스워드 확인란과 일치하지 않습니다.",
            });
            return;
        }
@@ -48,7 +48,7 @@ router.post("/user/signup", async (req,res) => {
        });
        if(existUsers.length){
            res.status(400).send({
-               errorMessage: "이미 가입된 이메일 또는 닉네임이 있습니다."
+            alert: "이미 가입된 이메일 또는 닉네임이 있습니다."
            });
            return;
        }
@@ -60,7 +60,7 @@ router.post("/user/signup", async (req,res) => {
    }catch(err){
        console.log(err);
        res.status(400).send({
-           errorMessage: "요청한 데이터 형식이 올바르지 않습니다.",
+        alert: "요청한 데이터 형식이 올바르지 않습니다.",
        });
 
    }
@@ -98,7 +98,7 @@ router.post("/user/login", async(req,res)=>{
 
        if(!user){
            res.status(401).send({ //401 인증실패 상태코드
-                   errorMessage: "비밀번호 또는 아이디를 확인해보세요",
+            alert: "비밀번호 또는 아이디를 확인해보세요",
            });
            return;
        }
@@ -112,7 +112,7 @@ router.post("/user/login", async(req,res)=>{
    }catch(err){
         console.log(err);
         res.status(400).send({
-           errorMessage: "요청한 데이터 형식이 올바르지 않습니다.",
+            alert: "요청한 데이터 형식이 올바르지 않습니다.",
        });
    }    
 });
