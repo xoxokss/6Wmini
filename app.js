@@ -14,7 +14,12 @@ const userRouter = require("./routes/user"); // require 함수로 user라우터 
 
 const commentRouter = require("./routes/comment"); // require 함수로 comment라우터 모듈(user.js)을 가지고옴.
 
-app.use(cors()); // CORS 모듈 실행
+const corsOption = {
+  origin: "https://aqueous-thought-352023.web.app/",
+  credentials: true,
+};
+
+app.use(cors(corsOption)); // CORS 모듈 실행
 
 app.use(express.json()); // json 미들웨어 실행
 
