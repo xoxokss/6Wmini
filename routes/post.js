@@ -84,28 +84,33 @@ router.post("/post", authMiddleware, async (req, res) => {
         const { user } = res.locals;
         //console.log(user.user_id);
         const { title, thumbnail_url, onair_year, content, ost_url } = await post_schema.validateAsync(req.body); // body 정보가져옴                
-        if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
+ 
+        if (!(onair_year>1900&&onair_year<2022)) {
             res.status(412).send({
-                errorMessage: 'youtube의 영상만 가능합니다.',
-            });   
-            return;     
-        } else if (!(onair_year>1900&&onair_year<2022)) {
-            res.status(412).send({
-                errorMessage: "년도 형식으로 입력해주세요."
+                errorMessage: '년도 형식으로 입력해주세요.'
             });
             return; 
-        } else if (content.search(/^[\s\S]{1,2000}$/) == -1) {
+        }
+        if (content.search(/^[\s\S]{1,2000}$/) == -1) {
             res.status(412).send({
-                errorMessage: "게시글 내용의 형식이 일치하지 않습니다."
-            });
-            return;
-        } else if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
-            res.status(412).send({
-                errorMessage: "공백으로만 이루어진 게시글은 작성할 수 없습니다."
+                errorMessage: '게시글 내용의 형식이 일치하지 않습니다.'
             });
             return;
         }
-
+        if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
+            res.status(412).send({
+                errorMessage: '공백으로만 이루어진 게시글은 작성할 수 없습니다.'
+            });
+            return;
+        }
+        if(!ost_url.includes('')){
+            if(!(ost_url.includes('www.youtube.com')||ost_url.includes('youtu.be'))){
+                res.status(412).send({
+                    errorMessage: 'youtube의 영상만 가능합니다.',
+                });   
+                return;     
+            } 
+        }       
         await Post.create({
                 title,
                 user_id : user.user_id,
@@ -113,13 +118,16 @@ router.post("/post", authMiddleware, async (req, res) => {
                 onair_year, 
                 content,
                 ost_url,
+                nickname : user.nickname
         });          
+       
+
         res.status(201).json({ result: 'success', msg: '내 추천만화가 등록되었습니다.' });    
         
         } catch (err) {
             console.log(err)
             res.status(400).send({
-                errorMessage: "게시글 작성 에러",
+                errorMessage: '게시글 작성 에러',
             })
         };
 });
@@ -132,28 +140,34 @@ router.patch('/post/:post_id/',authMiddleware,async (req, res) => {
     try{
         const { title, thumbnail_url, onair_year, content, ost_url} = await post_schema.validateAsync(req.body);        
         const {post_id} = req.params;
-        
-        if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
+               
+        if (!(onair_year>1900&&onair_year<2022)) {
             res.status(412).send({
-                errorMessage: 'youtube의 영상만 가능합니다.',
-            });   
-            return;     
-        } else if (!(onair_year>1900&&onair_year<2022)) {
-            res.status(412).send({
-                errorMessage: "년도 형식으로 입력해주세요."
+                errorMessage: '년도 형식으로 입력해주세요.'
             });
             return; 
-        } else if (content.search(/^[\s\S]{1,2000}$/) == -1) {
+        } 
+        if (content.search(/^[\s\S]{1,2000}$/) == -1) {
             res.status(412).send({
-                errorMessage: "게시글 내용의 형식이 일치하지 않습니다."
+                errorMessage: '게시글 내용의 형식이 일치하지 않습니다.'
             });
             return;
-        } else if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
+        } 
+        if (title.search(/^[\s]*$/) != -1 || content.search(/^[\s]*$/) != -1) {
             res.status(412).send({
-                errorMessage: "공백으로만 이루어진 게시글은 작성할 수 없습니다."
+                errorMessage: '공백으로만 이루어진 게시글은 작성할 수 없습니다.'
             });
             return;
-        }          
+        }  
+        if(!ost_url.includes('')){
+            if(!(ost_url.includes('www.youtube.com')||ost_url.includes('youtu.be'))){
+                res.status(412).send({
+                    errorMessage: 'youtube의 영상만 가능합니다.',
+                });   
+                return;     
+            } 
+        }       
+
         await Post.findByIdAndUpdate(post_id, {
             $set: { 
                 title:title,
