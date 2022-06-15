@@ -42,16 +42,20 @@ router.post("/user/signup", async (req,res) => {
            });
            return;
        }
+        //user_id도 중복체크 할수있게 수정
+          const existUsers = await User.find({
+            $or: [{ user_id }, { nickname }],
+      });
+
+
+      if (existUsers.length) {
+        res.status(400).send({
+          errorMessage: "이미 가입된 이메일 또는 닉네임이 있습니다.",
+        });
+        return;
+      }
+
        
-       const existUsers = await User.find({
-           nickname
-       });
-       if(existUsers.length){
-           res.status(400).send({
-                alert: "이미 가입된 이메일 또는 닉네임이 있습니다."
-           });
-           return;
-       }
        const user = new User({user_id, profile_img,nickname, password });
        await user.save();
 
