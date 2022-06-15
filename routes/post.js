@@ -81,8 +81,9 @@ const post_schema = Joi.object({
 router.post("/post", authMiddleware, async (req, res) => {  
     try {      
         
-        //const { user } = res.locals;
-        const { title, user_id, thumbnail_url, onair_year, content, ost_url } = await post_schema.validateAsync(req.body); // body 정보가져옴                
+        const { user } = res.locals;
+        //console.log(user.user_id);
+        const { title, thumbnail_url, onair_year, content, ost_url } = await post_schema.validateAsync(req.body); // body 정보가져옴                
         if(!(ost_url.includes("www.youtube.com")||ost_url.includes("youtu.be"))){
             res.status(412).send({
                 errorMessage: 'youtube의 영상만 가능합니다.',
@@ -107,7 +108,7 @@ router.post("/post", authMiddleware, async (req, res) => {
 
         await Post.create({
                 title,
-                user_id,
+                user_id : user.user_id,
                 thumbnail_url, 
                 onair_year, 
                 content,
@@ -209,7 +210,6 @@ router.delete('/post/:post_id',authMiddleware, async (req, res) => {
 /**
  * 좋아요 기능 API 
 */
-
 router.patch('/post/like/:post_id/',authMiddleware,async (req, res) => {
     try{
         const { user_id } = req.body;
@@ -276,17 +276,4 @@ router.get('/post/detail/:post_id', async (req, res) => {
    
 });
 
-/*
-router.get('/post/write', async (req, res) => {
-    const post = ''; // write.ejs는 modify 부분과 같이 쓰므로,
-    //새 글 쓰기 일 경우 !post 이 true 로 넘길 수 있도록 빈 스트링값 전달
-    res.status(200).render('write', { post: post });
-});    
-   
-    res.status(200).render('read', {
-        post: postInfo,
-        commentsInfo: commentsInfo,
-    }); // read.ejs 의 내용 render, postId 값이 일치하는 post 내용 전달
-});
-*/
 module.exports = router; // app.js의 require()로 리턴. module.exports는 꼭 있어야함.
