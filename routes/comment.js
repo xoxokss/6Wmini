@@ -16,6 +16,7 @@ router.get("/comment/:post_id", async (req, res) => {
         a.created_at.toLocaleTimeString("ko-KR"),
       nickname: a.nickname,
       comment: a.comment,
+      comment_id : a,comment_id
     })),
   });
 });
