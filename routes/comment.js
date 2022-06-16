@@ -8,7 +8,16 @@ router.get("/comment/:post_id", async (req, res) => {
   const { post_id } = req.params;
   // post_id에 속한 코멘트를 찾아서 comment_id, nickname, comment, created_at 을 보내줘야함
   const comments = await Comment.find({ post_id: post_id }).sort("created_at"); // 댓글 작성시간 순으로 정렬
-  res.json({ result: true, comments: comments });
+
+  res.json({
+    comments: comments.map((a) => ({
+      created_at:
+        a.created_at.toLocaleDateString("ko-KR") +
+        a.created_at.toLocaleTimeString("ko-KR"),
+      nickname: a.nickname,
+      comment: a.comment,
+    })),
+  });
 });
 
 //댓글 작성 API
