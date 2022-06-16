@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const saltRounds = 8;
 
 const UserSchema = new mongoose.Schema({   //다른 곳은 new 안쓰는데 차이가 ?? //상선 : new 는 constructor(생성자 함수)에 쓰입니다. this 라는 빈객체가 암시적으로 생성됩니다.
 
@@ -8,15 +10,32 @@ const UserSchema = new mongoose.Schema({   //다른 곳은 new 안쓰는데 차�
   password: String,
 });
 
-//user_id가 회원이 직접 입력하는 이메일로 결정되서 Mongoose를 이용한 virtual은 불필요합니다.
-/* 
-UserSchema.virtual("user_id").get(function () {
-  return this._id.toHexString();
+UserSchema.pre("save", function (next) {
+  const user = this;
+
+  // user가 password를 바꿀때만 hashing
+  if (user.isModified("password")) {
+    bcrypt.genSalt(saltRounds, function (err, salt) {
+      if (err) {
+        return next(err);
+      }
+
+      bcrypt.hash(user.password, salt, function (err, hash) {
+        if (err) {
+          return next(err)
+        }
+        user.password = hash
+        next()
+      })
+    })
+  }
 });
-UserSchema.set("toJSON", {
-  virtuals: true,
-});
-*/
+// UserSchema.virtual("userId").get(function () {
+//   return this._id.toHexString();
+// });
+// UserSchema.set("toJSON", {
+//   virtuals: true,
+// });
 module.exports = mongoose.model("User", UserSchema);
 
 
