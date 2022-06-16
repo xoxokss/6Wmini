@@ -107,7 +107,7 @@ router.post("/user/login", async(req,res)=>{
            return;
        }
       // console.log("key",process.env.JWT_SECRET);
-       const token = jwt.sign({user_id: user.user_id}, process.env.JWT_SECRET);
+       const token = jwt.sign({userId: user.userId}, process.env.JWT_SECRET);
        //console.log("token",token);
 
        res
