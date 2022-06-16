@@ -218,7 +218,7 @@ router.delete('/post/:post_id',authMiddleware, async (req, res) => {
 /**
  * 좋아요 기능 API 
 */
-router.patch('/post/like/:post_id/',authMiddleware,async (req, res) => {
+router.get('/post/like/:post_id/',authMiddleware,async (req, res) => {
     try{
         //const { user_id } = req.body;
         const { user } = res.locals;
