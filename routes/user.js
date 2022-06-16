@@ -1,6 +1,7 @@
 const express = require("express"); //express 패키지 불러오기
 const Joi = require("joi"); //joi 패키지 불러오기
 const jwt = require("jsonwebtoken"); // JWT 패키지 불러오기
+const bcrypt = require("bcrypt"); // 비밀번호 암호화 라이브러리
 const authMiddleware = require("../middlewares/auth-middleware"); //사용자인증 미들웨어 불러오기
 const User = require('../models/user') // user 스키마 불러오기
 const router = express.Router(); // express 라우터 기능 불러오기
@@ -60,7 +61,7 @@ router.post("/user/signup", async (req,res) => {
        await user.save();
 
        res.status(201).send({});
-
+ 
    }catch(err){
        console.log(err);
        res.status(400).send({
@@ -89,37 +90,60 @@ router.post('/user/id_check', async (req, res) => {
         alert: '사용 가능합니다.'
     });
 });
+//로그인 API
+router.post("/user/login", async (req, res) => {
+
+    const {user_id, password} = req.body;
+
+    const user = await User.findOne({ user_id }).exec();
+    if (!user) {
+        res.status(400).send({
+            errorMessage: '이메일 또는 패스워드를 확인해주세요.',
+        });
+        return;
+    }
+    const confirmpassword = await bcrypt.compare(password, user.password);
+    if (!confirmpassword) {
+      return res.status(400).send({errorMessage :"이메일 또는 패스워드를 확인해주세요."})
+    }
+
+    // const id = user.userId;
+    const token = jwt.sign({ user_id: user.user_id }, "JWT-secret-key"); 
+    res.status(200).send({ message: "로그인에 성공했습니다", token });
+    console.log(token);
+    console.log(user);
+});
 
 /**
 *로그인 API 
 */
-router.post("/user/login", async(req,res)=>{
-   try{
-
-       const { user_id,password } = req.body;
-
-       const user = await User.findOne({user_id,password}).exec();
-
-       if(!user){
-           res.status(401).send({ //401 인증실패 상태코드
-            alert: "비밀번호 또는 아이디를 확인해보세요",
-           });
-           return;
-       }
-      // console.log("key",process.env.JWT_SECRET);
-       const token = jwt.sign({userId: user.userId}, process.env.JWT_SECRET);
-       //console.log("token",token);
-
-       res
-       .send({ token, });
-
-   }catch(err){
-        console.log(err);
-        res.status(400).send({
-            alert: "요청한 데이터 형식이 올바르지 않습니다.",
-       });
-   }    
-});
+// router.post("/user/login", async(req,res)=>{
+//     try{
+ 
+//         const { user_id,password } = req.body;
+ 
+//         const user = await User.findOne({user_id,password}).exec();
+ 
+//         if(!user){
+//             res.status(401).send({ //401 인증실패 상태코드
+//              alert: "비밀번호 또는 아이디를 확인해보세요",
+//             });
+//             return;
+//         }
+//        // console.log("key",process.env.JWT_SECRET);
+//         const token = jwt.sign({user_id: user.user_id}, process.env.JWT_SECRET);
+//         //console.log("token",token);
+ 
+//         res
+//         .send({ token, });
+ 
+//     }catch(err){
+//          console.log(err);
+//          res.status(400).send({
+//              alert: "요청한 데이터 형식이 올바르지 않습니다.",
+//         });
+//     }
+// });    
 
 //여기가 필요한가 ? 여기가 없으면 로그인 이후 로그인상태가 유지 안된다... ? 이유는 ?
 //let cnt = 0;
