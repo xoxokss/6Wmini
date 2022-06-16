@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-//taein
+
 const PostSchema = mongoose.Schema(
     {
         title: String,
